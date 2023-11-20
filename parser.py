@@ -15,11 +15,11 @@ V -> "smiled" | "tell" | "were"
 """
 
 NONTERMINALS = """
-S -> NP VP | S Conj S | S VP Conj VP
+S -> NP VP | S Conj S | NP VP Conj VP | NP VP PP
 AP -> Adj | AP Adj
 PP -> P | P NP
-NP -> N | AP NP | NP Adv | NP PP | Det N | Det AP NP
-VP -> V | V NP | VP NP P | VP P NP | V Adv | Adv VP
+NP -> N | AP NP | Det N | Det AP NP
+VP -> V | V NP | VP P NP | VP NP P | VP Adv | Adv VP
 """
 
 grammar = nltk.CFG.fromstring(NONTERMINALS + TERMINALS)
@@ -50,7 +50,7 @@ def main():
         print("Could not parse sentence.")
         return
 
-    # Print each tree with noun phrase chunks
+    # Print each tree with noun phrase and the first phrase of the VP
     for tree in trees:
         tree.pretty_print()
 
@@ -70,20 +70,36 @@ def preprocess(sentence):
     return [word for word in words if any(c.isalpha() for c in word)]
 
 
+# def np_chunk(tree):
+#     """
+#     Return a list of all noun phrase chunks in the sentence tree.
+#     A noun phrase chunk is defined as a subtree of the sentence
+#     whose label is "NP" that does not itself contain other
+#     noun phrases as subtrees.
+#     """
+#     np_chunks = []
+
+#     def is_noun_phrase_chunk(subtree):
+#         return (
+#             subtree.label() == 'NP' and
+#             not any(t.label() == 'NP' for t in subtree.subtrees() if t != subtree)
+#         )
+
+#     for subtree in tree.subtrees(filter=is_noun_phrase_chunk):
+#         np_chunks.append(subtree)
+
+#     return np_chunks
+
 def np_chunk(tree):
     """
     Return a list of all noun phrase chunks in the sentence tree.
-    A noun phrase chunk is defined as any subtree of the sentence
-    whose label is "NP" that does not itself contain any other
-    noun phrases as subtrees.
+    A noun phrase chunk is defined as a subtree of the sentence
+    whose label is "NP".
     """
     np_chunks = []
 
     def is_noun_phrase_chunk(subtree):
-        return (
-            subtree.label() == 'NP' and
-            not any(t.label() == 'NP' for t in subtree.subtrees() if t != subtree)
-        )
+        return subtree.label() == 'NP'
 
     for subtree in tree.subtrees(filter=is_noun_phrase_chunk):
         np_chunks.append(subtree)
